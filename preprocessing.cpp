@@ -2,8 +2,11 @@
 #include <stack>
 #include <unordered_map>
 
-bool is_operation(const std::string& c) {
-    if (c == "+" || c == "-" || c == "*" || c == "/") {
+bool is_operation(const std::string& token) {
+    if (token == "+" || token == "-" || token == "*" ||
+        token == "/" || token == "(" || token == ")" ||
+        token == "sin" || token == "cos" || token == "tg" ||
+        token == "ctg" || token == "exp") {
         return true;
     }
     return false;
@@ -11,25 +14,43 @@ bool is_operation(const std::string& c) {
 
 std::vector<std::string> parse(const std::string& expr) {
     std::vector<std::string> parsed_infix;
-    std::string operand;
+    std::string other;
+    long double x;
+    bool x_defined = false;
 
     for (const char c : expr) {
         if (c == ' ') {
             continue;
         }
 
-        if (is_operation(std::string(1, c)) || c == ')' || c == '(') {
-            if (!operand.empty()) {
-                parsed_infix.push_back(operand);
-                operand.clear();
+        if (is_operation(std::string(1, c))) {
+            if (!other.empty()) {
+                if (other == "x") {
+                    if (!x_defined) {
+                        std::cin >> x;
+                        x_defined = true;
+                    }
+                    parsed_infix.push_back(std::to_string(x));
+                } else {
+                    parsed_infix.push_back(other);
+                }
+                other.clear();
             }
             parsed_infix.emplace_back(1, c);
         } else {
-            operand += c;
+            other += c;
         }
     }
-    if (!operand.empty()) {
-        parsed_infix.emplace_back(operand);
+    if (!other.empty()) {
+        if (other == "x") {
+            if (!x_defined) {
+                std::cin >> x;
+            }
+            parsed_infix.push_back(std::to_string(x));
+        } else {
+            parsed_infix.push_back(other);
+        }
+        other.clear();
     }
 
     return parsed_infix;
@@ -40,7 +61,12 @@ std::vector<std::string> inToPost(const std::vector<std::string>& infix) {
             {"+", 1},
             {"-", 1},
             {"*", 2},
-            {"/", 2}
+            {"/", 2},
+            {"sin", 3},
+            {"cos", 3},
+            {"tg", 3},
+            {"ctg", 3},
+            {"exp", 3}
     };
 
     std::vector<std::string> postfix;
